@@ -58,3 +58,9 @@ streamlit_app.py
 - The confidence threshold is hidden from the main dashboard and placed under Advanced Settings.
 - Camera support uses Streamlit's `st.camera_input`, which captures a camera snapshot for detection.
 - For best results, use clear images with good lighting.
+
+## Developers
+
+- JACOB HERMON PESCASIO - Senior Developer
+- DWAYNE MICHAEL MEDEL - Data Analyst
+- EARL LADION - UI/UX Designer 
