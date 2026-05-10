@@ -28,6 +28,7 @@ from src.ui import (
     render_topbar,
 )
 
+# Configure the Streamlit page title, icon, layout, and sidebar behavior.
 st.set_page_config(
     page_title="PesoLens ₱1000 Scanner",
     page_icon="₱",
@@ -39,7 +40,10 @@ st.set_page_config(
 # -----------------------------------------------------------------------------
 # Session state
 # -----------------------------------------------------------------------------
+# These helper functions initialize and control state variables used across Streamlit reruns.
+
 def init_state() -> None:
+    """Initialize session state defaults when the app first loads."""
     defaults = {
         "confidence": DEFAULT_CONFIDENCE,
         "last_summary": None,
@@ -64,6 +68,7 @@ def reset_scan(
     clear_camera: bool = False,
     clear_upload_marker: bool = False,
 ) -> None:
+    """Clear scan results and optionally reset upload/camera widgets."""
     st.session_state.last_summary = None
     st.session_state.last_image = None
     st.session_state.last_annotated = None
@@ -80,10 +85,12 @@ def reset_scan(
 
 
 def handle_detection_mode_change() -> None:
+    """Reset scan state whenever the user switches between upload and camera detection."""
     reset_scan(clear_upload=True, clear_camera=True)
 
 
 def get_query_value(key: str) -> str | None:
+    """Return the first value for a query parameter key."""
     value = st.query_params.get(key)
 
     if isinstance(value, list):
@@ -93,6 +100,7 @@ def get_query_value(key: str) -> str | None:
 
 
 def handle_url_actions() -> None:
+    """Handle special URL actions such as forcing a new scan page."""
     if get_query_value("new_scan") == "1":
         reset_scan(clear_upload=True, clear_camera=True)
         st.session_state.detection_mode = "Image Upload Detection"
@@ -103,6 +111,7 @@ def handle_url_actions() -> None:
 
 
 def image_to_bytes(image: Image.Image) -> bytes:
+    """Convert a PIL image to PNG bytes for download buttons."""
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
     return buffer.getvalue()
@@ -113,12 +122,14 @@ def resize_image_for_display(
     max_width: int = 900,
     max_height: int = 650,
 ) -> Image.Image:
+    """Resize an image for display, preserving aspect ratio and fitting the preview size."""
     display_image = image.copy()
     display_image.thumbnail((max_width, max_height))
     return display_image
 
 
 def process_image(image: Image.Image, mode: str) -> None:
+    """Run detection on the image, then save summary, annotated output, and history."""
     summary, annotated = run_detection(image, confidence=float(st.session_state.confidence))
 
     st.session_state.last_summary = summary
@@ -130,6 +141,7 @@ def process_image(image: Image.Image, mode: str) -> None:
 # -----------------------------------------------------------------------------
 # Sidebar
 # -----------------------------------------------------------------------------
+# The app sidebar contains page navigation and scan tips.
 def sidebar() -> str:
     with st.sidebar:
         render_brand()
@@ -158,7 +170,9 @@ def sidebar() -> str:
 # -----------------------------------------------------------------------------
 # Scan page
 # -----------------------------------------------------------------------------
+# Primary scan page functions for choosing mode and performing detection.
 def render_detection_mode_selector() -> str:
+    """Render the detection mode radio selector for upload or camera scanning."""
     options = ["Image Upload Detection", "Camera/Webcam Detection"]
 
     if st.session_state.get("detection_mode") not in options:
@@ -184,6 +198,7 @@ def render_detection_mode_selector() -> str:
 
 
 def scan_page() -> None:
+    """Render the main Scan page including model status and mode selection."""
     render_topbar()
 
     model = load_yolo_model()
@@ -204,6 +219,7 @@ def scan_page() -> None:
 
 
 def upload_detection() -> None:
+    """Render the image upload scan flow and handle image analysis."""
     st.markdown("<div class='mini-label'>Image Upload Detection</div>", unsafe_allow_html=True)
 
     uploaded_file = st.file_uploader(
@@ -296,6 +312,7 @@ def upload_detection() -> None:
 
 
 def camera_detection() -> None:
+    """Render the camera capture scan flow and handle image analysis."""
     st.markdown("<div class='mini-label'>Camera/Webcam Detection</div>", unsafe_allow_html=True)
     st.info("Allow camera permission, take a snapshot, then click Analyze Captured Image.")
 
@@ -383,7 +400,9 @@ def camera_detection() -> None:
 # -----------------------------------------------------------------------------
 # Other pages
 # -----------------------------------------------------------------------------
+# Secondary app pages for history, help, system info, user guidance, and settings.
 def history_page() -> None:
+    """Render the scan history page to review past detections."""
     render_topbar()
     st.markdown("<div class='section-title'>Scan History</div>", unsafe_allow_html=True)
 
@@ -407,6 +426,7 @@ def history_page() -> None:
 
 
 def how_it_works_page() -> None:
+    """Render the How It Works page to explain the scanning workflow."""
     render_topbar()
     st.markdown("<div class='section-title'>How It Works</div>", unsafe_allow_html=True)
 
@@ -437,6 +457,7 @@ def how_it_works_page() -> None:
 
 
 def about_system_page() -> None:
+    """Render the About System page that describes the app and model status."""
     render_topbar()
     st.markdown("<div class='section-title'>About System</div>", unsafe_allow_html=True)
 
@@ -483,6 +504,7 @@ def about_system_page() -> None:
 
 
 def user_guide_page() -> None:
+    """Render the user guide with tips and troubleshooting advice."""
     render_topbar()
     st.markdown("<div class='section-title'>User Guide</div>", unsafe_allow_html=True)
 
@@ -524,6 +546,7 @@ def user_guide_page() -> None:
 
 
 def settings_page() -> None:
+    """Render app settings so the user can adjust detection confidence."""
     render_topbar()
     st.markdown("<div class='section-title'>Settings</div>", unsafe_allow_html=True)
 
@@ -553,6 +576,7 @@ def settings_page() -> None:
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
+# Entry point for the app. Initializes styles, state, URL actions, and page rendering.
 def main() -> None:
     apply_css()
     init_state()
